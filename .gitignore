@@ -1,0 +1,76 @@
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.nox/
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+**/.venv/
+**/venv/
+
+# -----------------------------------------------------------------------------
+# Node / frontend
+# -----------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+coverage/
+
+# -----------------------------------------------------------------------------
+# Environment and secrets
+# -----------------------------------------------------------------------------
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!.env.sample
+
+# -----------------------------------------------------------------------------
+# Logs and runtime state
+# -----------------------------------------------------------------------------
+logs/
+**/logs/
+*.log
+*.pid
+*.pid.lock
+*.tmp
+
+# -----------------------------------------------------------------------------
+# OS / editor
+# -----------------------------------------------------------------------------
+.DS_Store
+.vscode/
+.idea/
+
+# -----------------------------------------------------------------------------
+# Project generated runtime data (keep templates/docs tracked)
+# -----------------------------------------------------------------------------
+corr-arb-agent/data/pending_trades.json
+corr-arb-agent/data/reputation_state.json
+corr-arb-agent/data/price_cache.json
+corr-arb-agent/data/price_history_*.json
+corr-arb-agent/data/archive/
+corr-arb-agent/.runtime/
+
+# -----------------------------------------------------------------------------
+# Non-deployment docs and planning notes
+# -----------------------------------------------------------------------------
+implemen_docs copy/
+**/*_IMPLEMENTATION.md
+corr-arb-agent/HACKATHON_MEMORY.md
+corr-arb-agent/PROJECT_STATUS.md
+corr-arb-agent/DEPLOYMENT_GUIDE.md
