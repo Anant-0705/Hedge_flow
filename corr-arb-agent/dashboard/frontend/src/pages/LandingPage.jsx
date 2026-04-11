@@ -69,22 +69,22 @@ export default function LandingPage() {
       {/* ── HERO ─────────────────────────────────── */}
       <section className="hero-section">
         <h1 className="hero-headline">
-          Every AI Trade Decision.
-          <br />
-          Proven On-Chain.
+          Autonomous Cross-Asset<br />Correlation Arbitrage Agent
         </h1>
         <p className="hero-sub">
-          HedgeFlow is trustless financial agent infrastructure. Our AI agent
-          watches 15 asset pairs 24/7, detects statistical arbitrage
-          opportunities, and records every decision permanently on Ethereum — so
-          anyone can verify it.
+          HedgeFlow implements a fully autonomous ERC-8004 compliant trading
+          agent on Ethereum Sepolia. It monitors 15 asset pair correlations
+          via PRISM API, applies z-score mean-reversion detection, routes
+          decisions through Claude for reasoning attestation, and commits
+          every trade intent on-chain via EIP-712 signed structs to a shared
+          RiskRouter contract.
         </p>
         <div className="hero-buttons">
           <Link to="/dashboard" className="btn btn-primary">
             View Live Dashboard
           </Link>
           <Link to="/trade/latest" className="btn btn-secondary">
-            See a Real Trade
+            Inspect Trade Lifecycle
           </Link>
         </div>
         <div className="hero-stats">
@@ -93,22 +93,21 @@ export default function LandingPage() {
             <span className="hero-stat-value">
               {stats ? stats.trades : <Skeleton />}
             </span>
-            <span>trades executed</span>
+            <span>on-chain intents</span>
           </div>
           <div className="hero-stat">
             <Icon name="verified" style={{ fontSize: 18 }} />
-            <span>Validation score:</span>
+            <span>Reputation:</span>
             <span className="hero-stat-value">
               {stats ? `${stats.valScore}/100` : <Skeleton />}
             </span>
           </div>
           <div className="hero-stat">
-            <Icon name="leaderboard" style={{ fontSize: 18 }} />
-            <span>Ranked</span>
+            <Icon name="tag" style={{ fontSize: 18 }} />
+            <span>ERC-8004 NFT ID:</span>
             <span className="hero-stat-value">
               {stats ? `#${stats.rank}` : <Skeleton />}
             </span>
-            <span>on leaderboard</span>
           </div>
         </div>
       </section>
@@ -118,36 +117,39 @@ export default function LandingPage() {
       {/* ── THE PROBLEM ──────────────────────────── */}
       <section className="section">
         <p className="section-label">The Problem</p>
-        <h2 className="section-title">Why this matters</h2>
+        <h2 className="section-title">Unsolved problems in autonomous agent infrastructure</h2>
         <div className="problems-grid" style={{ marginTop: 24 }}>
           <div className="card problem-card">
             <div className="problem-icon">
               <Icon name="visibility_off" />
             </div>
-            <h3>AI trading is a black box</h3>
+            <h3>Non-verifiable decision logic</h3>
             <p>
-              $10 trillion managed by algorithms. Zero public accountability for
-              decisions.
+              AI agents execute trades with opaque reasoning. No mechanism
+              exists to cryptographically bind the decision rationale to the
+              on-chain execution, making post-hoc audit impossible.
             </p>
           </div>
           <div className="card problem-card">
             <div className="problem-icon">
               <Icon name="content_copy" />
             </div>
-            <h3>Track records can be faked</h3>
+            <h3>Mutable performance history</h3>
             <p>
-              Self-reported performance data. No independent verification
-              possible.
+              Off-chain track records stored in databases can be selectively
+              edited or deleted. Without immutable checkpointing, there is no
+              source of truth for win rate, PnL, or Sharpe computation.
             </p>
           </div>
           <div className="card problem-card">
             <div className="problem-icon">
               <Icon name="block" />
             </div>
-            <h3>Capital and trust don&apos;t scale</h3>
+            <h3>No trustless reputation primitive</h3>
             <p>
-              Good strategies stay small. No trustless way to attract external
-              capital.
+              Agent capital allocation requires reputation scores derived from
+              verified outcomes. Current systems lack an on-chain primitive
+              that maps trade results to position sizing multipliers.
             </p>
           </div>
         </div>
@@ -157,61 +159,75 @@ export default function LandingPage() {
 
       {/* ── HOW IT WORKS ─────────────────────────── */}
       <section className="section">
-        <p className="section-label">How It Works</p>
+        <p className="section-label">Pipeline</p>
         <h2 className="section-title" style={{ marginBottom: 32 }}>
-          Four steps, fully autonomous
+          Four-stage autonomous execution loop
         </h2>
         <div className="timeline">
           <div className="timeline-step">
             <div className="timeline-dot">
               <Icon name="monitoring" style={{ fontSize: 20 }} />
             </div>
-            <p className="timeline-step-number">Step 1</p>
-            <h3>Signal Detected</h3>
+            <p className="timeline-step-number">Stage 1 — Signal Detection</p>
+            <h3>Correlation Z-Score Breach</h3>
             <p>
-              Our correlation engine monitors 15 crypto and commodity pairs.
-              When a pair&apos;s correlation breaks beyond 2.5 standard deviations
-              from its 90-day mean, a trade signal is generated.
+              The Python signal monitor polls PRISM API every 5 minutes for
+              live prices across 6 assets (BTC, ETH, SOL, AVAX, LINK, ARB).
+              For each of the 15 unique pairs, it computes a 30-day rolling
+              Pearson correlation coefficient, then calculates the z-score
+              against the 90-day historical distribution. A signal fires when
+              |z| exceeds the configurable threshold (default: 2.0, live
+              gate: 2.8).
             </p>
           </div>
           <div className="timeline-step">
             <div className="timeline-dot">
               <Icon name="psychology" style={{ fontSize: 20 }} />
             </div>
-            <p className="timeline-step-number">Step 2</p>
-            <h3>AI Reasons</h3>
+            <p className="timeline-step-number">Stage 2 — LLM Reasoning</p>
+            <h3>Claude API Decision with Attestation Hash</h3>
             <p>
-              Claude API analyzes the signal with full market context: z-score,
-              correlation breakdown, recent PnL, reputation score, macro
-              conditions. It decides: execute or skip, and generates a
-              plain-English explanation.
+              The signal payload (z-score, correlation, historical mean,
+              current prices, agent reputation score, recent PnL, circuit
+              breaker state) is sent to Claude via the Anthropic API. Claude
+              returns a structured JSON response: action (EXECUTE/SKIP),
+              directional legs (LONG/SHORT per asset), position size in USD,
+              confidence score, and a plain-English reasoning string. The
+              reasoning is immediately hashed via keccak256 for on-chain
+              commitment.
             </p>
           </div>
           <div className="timeline-step">
             <div className="timeline-dot">
               <Icon name="lock" style={{ fontSize: 20 }} />
             </div>
-            <p className="timeline-step-number">Step 3</p>
-            <h3>Proof Recorded On-Chain</h3>
+            <p className="timeline-step-number">Stage 3 — On-Chain Execution</p>
+            <h3>EIP-712 Intent Signing + RiskRouter Submission</h3>
             <p>
-              The reasoning is hashed (keccak256) and posted to
-              ValidationRegistry on Ethereum Sepolia via EIP-712 signed
-              attestation. The signal data — z-score, correlation, confidence —
-              is cryptographically bound into the checkpoint hash. Immutable.
-              Public. Verifiable.
+              The Node.js executor constructs an EIP-712 typed struct
+              (TradeIntent: agentId, pair, action, amountUsdScaled,
+              confidenceBps, nonce, deadline). The agent wallet signs it and
+              submits to the shared RiskRouter contract via
+              executeSignedTrade(). Simultaneously, a checkpoint hash
+              (keccak256 of z-score + correlation + confidence + reasoning
+              hash) is posted to ValidationRegistry.submitCheckpoint().
             </p>
           </div>
           <div className="timeline-step">
             <div className="timeline-dot">
               <Icon name="star_outline" style={{ fontSize: 20 }} />
             </div>
-            <p className="timeline-step-number">Step 4</p>
-            <h3>Reputation Builds</h3>
+            <p className="timeline-step-number">Stage 4 — Settlement + Reputation</p>
+            <h3>Mark-to-Market PnL with ERC-8004 Score Update</h3>
             <p>
-              Every trade outcome updates the agent&apos;s ERC-8004 reputation
-              score. High reputation unlocks larger position sizes. Bad trades
-              reduce it. The score cannot be faked — it&apos;s computed from real
-              on-chain outcomes.
+              The trade settler monitors open positions and computes
+              mark-to-market PnL on exit. Settlement results update the
+              agent&apos;s on-chain reputation via ReputationRegistry.recordTrade().
+              The score (0-100) is a composite of win rate, Sharpe proxy,
+              max drawdown, and streak multipliers. Position sizing scales
+              linearly: multiplier = max(0.5, min(2.0, repScore / 50)).
+              A circuit breaker activates after 3 consecutive losses,
+              pausing execution for 1 hour.
             </p>
           </div>
         </div>
@@ -222,43 +238,47 @@ export default function LandingPage() {
       {/* ── ARCHITECTURE DIAGRAM ─────────────────── */}
       <section className="section">
         <p className="section-label">Architecture</p>
-        <h2 className="section-title">System overview</h2>
+        <h2 className="section-title">Three-process runtime architecture</h2>
         <div className="arch-diagram">
           <div className="arch-box">
-            <div className="arch-box-title">Signal Engine</div>
+            <div className="arch-box-title">Brain (Python)</div>
             <ul className="arch-box-items">
-              <li>PRISM API</li>
-              <li>Correlation Engine</li>
-              <li>Claude LLM</li>
+              <li>signal_monitor.py</li>
+              <li>correlation_engine.py</li>
+              <li>prism_client.py</li>
+              <li>llm_reasoner.py</li>
             </ul>
           </div>
           <div className="arch-arrow">
             <Icon name="arrow_forward" />
           </div>
           <div className="arch-box">
-            <div className="arch-box-title">Executor</div>
+            <div className="arch-box-title">Hands (Node.js)</div>
             <ul className="arch-box-items">
-              <li>Trade Watcher</li>
-              <li>Intent Builder</li>
-              <li>Artifact Poster</li>
+              <li>trade_watcher.js</li>
+              <li>intent_builder.js</li>
+              <li>signer.js (EIP-712)</li>
+              <li>artifact_poster.js</li>
+              <li>trade_settler.js</li>
             </ul>
           </div>
           <div className="arch-arrow">
             <Icon name="arrow_forward" />
           </div>
           <div className="arch-box">
-            <div className="arch-box-title">Blockchain / Sepolia</div>
+            <div className="arch-box-title">Chain (Sepolia)</div>
             <ul className="arch-box-items">
-              <li>AgentRegistry</li>
-              <li>RiskRouter</li>
+              <li>AgentRegistry (ERC-8004)</li>
+              <li>RiskRouter (shared)</li>
               <li>ValidationRegistry</li>
               <li>ReputationRegistry</li>
+              <li>HackathonVault</li>
             </ul>
           </div>
         </div>
         <p className="arch-caption">
-          All three components run autonomously. No human intervention required
-          after deployment.
+          Components communicate via pending_trades.json (Brain writes, Hands
+          reads). On-chain interactions use ethers.js v6 with Alchemy RPC.
         </p>
       </section>
 
@@ -266,71 +286,81 @@ export default function LandingPage() {
 
       {/* ── PRISM + LLM ──────────────────────────── */}
       <section className="section">
-        <p className="section-label">Data & Intelligence</p>
+        <p className="section-label">Data Layer + Reasoning Layer</p>
         <h2 className="section-title" style={{ marginBottom: 32 }}>
-          Two engines, one pipeline
+          PRISM API integration and LLM reasoning pipeline
         </h2>
         <div className="two-col">
           <div>
-            <h3 className="col-title">PRISM: Multi-Asset Intelligence</h3>
+            <h3 className="col-title">PRISM: Unified Asset Resolution</h3>
             <p className="col-text">
-              PRISM API resolves any ticker — crypto, forex, commodities — into
-              a unified identity. Our agent pulls live prices and 90-day history
-              for BTC, ETH, SOL, AVAX, LINK, ARB simultaneously. This enables
-              correlation analysis across 15 asset pairs that traditional
-              single-asset bots cannot see.
+              PRISM API (api.prismapi.ai) resolves heterogeneous tickers into
+              canonical identities. The agent calls GET /price/history with
+              lookback=90d for each asset, then constructs a correlation
+              matrix using scipy.stats.pearsonr over 30-day rolling windows.
+              The z-score is computed against the 90-day mean and standard
+              deviation of the correlation time series.
             </p>
             <table className="data-table">
               <thead>
                 <tr>
                   <th>Asset</th>
-                  <th>Type</th>
-                  <th>Pairs</th>
+                  <th>PRISM Ticker</th>
+                  <th>Unique Pairs</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td>BTC</td><td>Crypto</td><td>5</td></tr>
-                <tr><td>ETH</td><td>Crypto</td><td>5</td></tr>
-                <tr><td>SOL</td><td>Crypto</td><td>4</td></tr>
-                <tr><td>AVAX</td><td>Crypto</td><td>3</td></tr>
-                <tr><td>LINK</td><td>Crypto</td><td>2</td></tr>
-                <tr><td>ARB</td><td>Crypto</td><td>1</td></tr>
+                <tr><td>BTC</td><td>bitcoin</td><td>5</td></tr>
+                <tr><td>ETH</td><td>ethereum</td><td>5</td></tr>
+                <tr><td>SOL</td><td>solana</td><td>4</td></tr>
+                <tr><td>AVAX</td><td>avalanche</td><td>3</td></tr>
+                <tr><td>LINK</td><td>chainlink</td><td>2</td></tr>
+                <tr><td>ARB</td><td>arbitrum</td><td>1</td></tr>
               </tbody>
             </table>
           </div>
           <div>
-            <h3 className="col-title">Claude: The Reasoning Layer</h3>
+            <h3 className="col-title">Claude: Structured Reasoning with Hash Commitment</h3>
             <p className="col-text">
-              Every signal goes to Claude API with full context. Claude
-              doesn&apos;t just say yes/no — it explains its reasoning in plain
-              English, which gets hashed and stored on-chain. This means every
-              trade has a human-readable audit trail.
+              Each signal is sent to Claude via the Anthropic messages API
+              with a structured system prompt enforcing JSON output schema.
+              The reasoning field is hashed (keccak256) before the response
+              is written to pending_trades.json. This hash becomes part of
+              the checkpoint submitted to ValidationRegistry, creating a
+              cryptographic binding between the AI&apos;s reasoning and the
+              on-chain record.
             </p>
             <div style={{ marginBottom: 12 }}>
-              <p className="code-label">Input (condensed)</p>
+              <p className="code-label">LLM Input Payload</p>
               <div className="code-block">
 {`{
   "pair": "ETH/SOL",
   "z_score": -3.81,
-  "correlation": 0.667,
+  "current_correlation": 0.667,
   "historical_mean": 0.935,
+  "historical_std": 0.070,
   "rep_score": 78,
-  "recent_pnl": "+$4.20"
+  "position_multiplier": 1.56,
+  "recent_pnl_usd": 4.20,
+  "circuit_breaker": false,
+  "consecutive_losses": 0
 }`}
               </div>
             </div>
             <div>
-              <p className="code-label">Output</p>
+              <p className="code-label">LLM Response (validated JSON)</p>
               <div className="code-block">
 {`{
   "action": "EXECUTE",
-  "action_a": "SHORT",
-  "action_b": "LONG",
+  "action_a": "SHORT",  // ETH
+  "action_b": "LONG",   // SOL
   "size_usd": 180,
   "confidence": 0.82,
-  "reasoning": "ETH/SOL correlation
-    at 3.81σ below mean. High
-    reversion probability..."
+  "reasoning": "ETH/SOL corr at
+    3.81σ below 90d mean (0.935).
+    Mean-reversion probability
+    >85% per historical backtest.
+    Position sized at 1.56x mult."
 }`}
               </div>
             </div>
@@ -342,16 +372,17 @@ export default function LandingPage() {
 
       {/* ── THE MATH ─────────────────────────────── */}
       <section className="section">
-        <p className="section-label">The Signal</p>
-        <h2 className="section-title">How we detect opportunities</h2>
+        <p className="section-label">Quantitative Model</p>
+        <h2 className="section-title">Signal detection and position sizing formulas</h2>
         <div className="formulas" style={{ marginTop: 24 }}>
           <div className="formula-card">
             <div className="formula-expression">
-              {"ρ(A,B) = corr(A, B, 30d)"}
+              {"ρ(A,B) = Σ(rA·rB) / √(Σ(rA²)·Σ(rB²))"}
             </div>
             <p className="formula-description">
-              Pearson correlation between asset A and B over a 30-day rolling
-              window. How closely two assets have been moving together recently.
+              Pearson correlation coefficient over a 30-day rolling window of
+              log returns. Computed via scipy.stats.pearsonr for numerical
+              stability. Range: [-1, 1].
             </p>
           </div>
           <div className="formula-card">
@@ -359,43 +390,63 @@ export default function LandingPage() {
               {"z = (ρ_now − μ_90d) / σ_90d"}
             </div>
             <p className="formula-description">
-              How unusual today&apos;s correlation is compared to the past 90
-              days. A z-score of 2 means the current reading is 2 standard
-              deviations from the historical mean.
+              Standardized deviation of the current correlation from the
+              90-day rolling mean. Two thresholds: MIN_ABS_ZSCORE_LIVE=2.8
+              for signal generation, ZSCORE_THRESHOLD=2.0 for dashboard
+              visualization.
             </p>
           </div>
           <div className="formula-card">
             <div className="formula-expression">
-              {"signal when |z| > 2.5"}
+              {"size = clamp(base × mult, 50, 200)"}
             </div>
             <p className="formula-description">
-              We only trade when the divergence is statistically significant.
-              This threshold filters out noise and focuses on genuine
-              mean-reversion opportunities.
+              Position size in USD. Base size scaled by the reputation
+              multiplier (repScore/50, clamped to [0.5, 2.0]). Floor at
+              MIN_POSITION_USD=50, cap at MAX_POSITION_USD=200. Additional
+              gate: MIN_LLM_CONFIDENCE=0.40.
+            </p>
+          </div>
+          <div className="formula-card">
+            <div className="formula-expression">
+              {"checkpoint = keccak256(z, ρ, conf, rHash)"}
+            </div>
+            <p className="formula-description">
+              The on-chain checkpoint hash is the keccak256 digest of the
+              signal parameters (z-score, correlation, confidence) concatenated
+              with the reasoning hash. Submitted to ValidationRegistry
+              .submitCheckpoint(agentId, checkpointHash, score, notes).
             </p>
           </div>
         </div>
         <div className="example-box">
-          <p className="example-label">Worked Example</p>
+          <p className="example-label">Worked Example — ETH/SOL Signal</p>
           <p>
-            ETH/SOL had a 90-day correlation mean of 0.935. Today&apos;s
-            correlation dropped to 0.667.
+            Input: ρ_30d(ETH,SOL) = 0.667, μ_90d = 0.935, σ_90d = 0.070
             <br />
-            Z-score = (0.667 − 0.935) / 0.070 = <strong>−3.81</strong>
+            z = (0.667 − 0.935) / 0.070 = <strong>−3.83</strong>
             <br />
-            This is a 3.81 standard deviation event — trade signal fired.
+            Gate check: |−3.83| {">"}  2.8 (MIN_ABS_ZSCORE_LIVE) — pass
+            <br />
+            LLM confidence: 0.82 {">"}  0.40 (MIN_LLM_CONFIDENCE) — pass
+            <br />
+            Rep score: 78 → multiplier = 78/50 = 1.56
+            <br />
+            Position: clamp(115 × 1.56, 50, 200) = <strong>$179.40</strong>
+            <br />
+            Action: SHORT ETH + LONG SOL (mean-reversion)
           </p>
         </div>
       </section>
 
       {/* ── FOOTER CTA ───────────────────────────── */}
       <div className="footer-cta">
-        <h2>See it live. Every trade is on-chain right now.</h2>
+        <h2>Verify every decision. Contracts are live on Sepolia.</h2>
         <Link to="/dashboard" className="btn btn-primary" style={{ marginTop: 8 }}>
           Open Live Dashboard
         </Link>
         <p className="footer-small" style={{ marginTop: 16 }}>
-          Deployed on Ethereum Sepolia Testnet
+          Ethereum Sepolia Testnet — Chain ID 11155111
         </p>
         <div className="footer-links">
           <a
@@ -404,7 +455,7 @@ export default function LandingPage() {
             rel="noreferrer"
           >
             <Icon name="open_in_new" style={{ fontSize: 14 }} />
-            ValidationRegistry on Etherscan
+            ValidationRegistry ({CONTRACTS.validation.slice(0, 8)}...)
           </a>
           <a
             href={`${ETHERSCAN_BASE}${CONTRACTS.agent}`}
@@ -412,7 +463,15 @@ export default function LandingPage() {
             rel="noreferrer"
           >
             <Icon name="open_in_new" style={{ fontSize: 14 }} />
-            AgentRegistry on Etherscan
+            AgentRegistry ({CONTRACTS.agent.slice(0, 8)}...)
+          </a>
+          <a
+            href={`${ETHERSCAN_BASE}${CONTRACTS.riskRouter}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Icon name="open_in_new" style={{ fontSize: 14 }} />
+            RiskRouter ({CONTRACTS.riskRouter.slice(0, 8)}...)
           </a>
         </div>
       </div>
