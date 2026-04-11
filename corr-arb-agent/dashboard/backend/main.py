@@ -249,6 +249,46 @@ def get_trades() -> dict[str, Any]:
     }
 
 
+@app.get("/api/trades/{trade_id}")
+def get_trade_by_id(trade_id: str) -> Any:
+    trades = _load_trades()
+
+    for trade in trades:
+        if str(trade.get("id", "")) == trade_id:
+            formatted = _format_trade(trade)
+
+            # Attach additional raw fields for the trade detail page
+            decision = trade.get("decision") or {}
+            signal = trade.get("signal") or {}
+            settlement = trade.get("settlement") or {}
+
+            formatted["historicalMean"] = float(
+                _pick(signal, ["historicalMean", "historical_mean"], 0) or 0
+            )
+            formatted["reasoningText"] = _pick(
+                decision, ["reasoning_text", "reasoningText", "reasoning"], ""
+            )
+            formatted["checkpointHash"] = _pick(
+                trade, ["checkpointHash", "checkpoint_hash"], ""
+            )
+            formatted["attestationScore"] = int(
+                _pick(trade, ["attestationScore", "attestation_score"], 0) or 0
+            )
+            formatted["nonce"] = _pick(trade, ["nonce"], "")
+            formatted["deadline"] = _pick(trade, ["deadline"], "")
+            formatted["agentId"] = int(os.getenv("AGENT_NFT_ID", "0") or 0)
+            formatted["settlement"] = {
+                "pnlUsd": float(settlement.get("pnlUsd", 0) or 0),
+                "entryPrice": settlement.get("entryPrice"),
+                "exitPrice": settlement.get("exitPrice"),
+                "method": settlement.get("method", "mark-to-market"),
+            }
+
+            return formatted
+
+    return JSONResponse(status_code=404, content={"error": f"Trade {trade_id} not found"})
+
+
 @app.get("/api/performance")
 def get_performance() -> dict[str, Any]:
     trades = _load_trades()

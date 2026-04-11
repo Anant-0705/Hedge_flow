@@ -7,8 +7,16 @@ LOG_DIR="$PROJECT_ROOT/logs/agents"
 PID_DIR="$PROJECT_ROOT/.runtime"
 
 PYTHON_BIN="$PROJECT_ROOT/venv/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  # Try Windows path
+  PYTHON_BIN="$PROJECT_ROOT/venv/Scripts/python.exe"
+fi
+
 if [[ ! -x "$PYTHON_BIN" && -x "$PROJECT_ROOT/../.venv/bin/python" ]]; then
   PYTHON_BIN="$PROJECT_ROOT/../.venv/bin/python"
+fi
+if [[ ! -x "$PYTHON_BIN" && -x "$PROJECT_ROOT/../.venv/Scripts/python.exe" ]]; then
+  PYTHON_BIN="$PROJECT_ROOT/../.venv/Scripts/python.exe"
 fi
 
 mkdir -p "$LOG_DIR" "$PID_DIR"
