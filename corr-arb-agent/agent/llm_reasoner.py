@@ -98,7 +98,7 @@ def decide_trade(
     recent_trade_pnl: list[float],
     macro_context: dict,
 ) -> TradeDecision:
-    """Ask Claude to decide whether to execute a correlation signal trade."""
+    """Ask the LLM to decide whether to execute a correlation signal trade."""
     if not GROQ_API_KEY:
         reason = "Missing GROQ_API_KEY. Skipping trade for safety."
         logger.warning(reason)
@@ -124,11 +124,17 @@ Signal:
 - Current 30-day correlation: {signal.current_correlation:.4f}
 - Historical mean correlation (90-day): {signal.historical_mean:.4f}
 - Historical std deviation: {signal.historical_std:.4f}
-- Z-score: {signal.z_score:.4f}
+- Correlation Z-score: {signal.z_score:.4f}
 - Direction: {signal.direction}
 - Signal confidence: {signal.confidence:.2f}
 - Current {signal.asset_a} price: ${signal.price_a:,.2f}
 - Current {signal.asset_b} price: ${signal.price_b:,.2f}
+
+Cointegration (Engle-Granger ADF test — pair is mathematically verified):
+- Spread Z-score: {signal.spread_zscore:.4f}  ← primary entry signal; how far spread is from equilibrium
+- Hedge ratio β: {signal.hedge_ratio:.6f}  ← hold 1 unit {signal.asset_a}, hedge with β units {signal.asset_b}
+- ADF p-value: {signal.cointegration_pvalue:.6f}  ← lower = stronger mean-reversion guarantee
+- Cointegrated: {signal.is_cointegrated}
 
 Agent state:
 - Reputation score: {agent_reputation_score}/100
@@ -143,11 +149,16 @@ Macro context:
 
 Task:
 1) Decide EXECUTE or SKIP.
-2) If EXECUTE, pick LONG for one asset and SHORT for the other asset (always market-neutral pair).
+2) If EXECUTE, pick LONG for one asset and SHORT for the other (always market-neutral pair).
 3) Select a size in USD between {MIN_POSITION_USD} and {base_size:.0f}.
 4) Explain reasoning clearly.
-5) If macro context fields are unknown, treat them as neutral and do not SKIP for that reason alone.
-6) Do not apply any hidden confidence cutoff. Set execute=true when the signal is tradable; runtime gates will enforce final confidence thresholds.
+5) Use hedge ratio β for position sizing: leg B USD exposure ≈ β × leg A USD exposure.
+6) Spread Z-score is the primary entry strength indicator.
+   spread_zscore > 0: spread is above mean → short the spread → short {signal.asset_a}, long {signal.asset_b}.
+   spread_zscore < 0: spread is below mean → long the spread → long {signal.asset_a}, short {signal.asset_b}.
+   If spread_zscore direction conflicts with the direction field, flag it in reasoning and set execute=false.
+7) If macro context fields are unknown, treat them as neutral and do not SKIP for that reason alone.
+8) Do not apply any hidden confidence cutoff. Set execute=true when the signal is tradable; runtime gates will enforce final confidence thresholds.
 
 Respond only in valid JSON with exactly this schema:
 {{
@@ -173,7 +184,9 @@ Respond only in valid JSON with exactly this schema:
         data = json.loads(_extract_json_text(raw))
 
         reasoning_text = data.get("reasoning", "") or data.get("skip_reason", "")
-        reasoning_hash = compute_reasoning_hash(reasoning_text)
+        reasoning_hash = compute_reasoning_hash(
+            f"{reasoning_text}|spread_z={signal.spread_zscore:.4f}|beta={signal.hedge_ratio:.6f}|coint_p={signal.cointegration_pvalue:.6f}"
+        )
 
         decision = TradeDecision(
             execute=bool(data.get("execute", False)),
