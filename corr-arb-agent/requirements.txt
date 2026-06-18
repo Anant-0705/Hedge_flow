@@ -8,6 +8,7 @@ scipy>=1.15.0; python_version >= "3.13"
 python-dotenv==1.0.1
 anthropic==0.25.0
 httpx<0.28
+statsmodels==0.14.2
 schedule==1.2.1
 colorama==0.4.6
 web3==7.10.0
