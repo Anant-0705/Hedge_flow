@@ -19,6 +19,10 @@ BINANCE_BASE_URL = "https://api.binance.com"
 ASSETS = [asset.strip() for asset in os.getenv("ASSETS", "BTC,ETH,SOL,MATIC,GOLD,EUR").split(",") if asset.strip()]
 LIVE_ASSETS = [asset.strip() for asset in os.getenv("LIVE_ASSETS", "BTC,ETH,SOL").split(",") if asset.strip()]
 
+# Cointegration gate (Engle-Granger ADF test)
+# Pairs with ADF p-value >= this threshold are rejected — correlation but no mean reversion.
+COINTEGRATION_PVALUE_THRESHOLD = float(os.getenv("COINTEGRATION_PVALUE_THRESHOLD", 0.05))
+
 # Correlation engine parameters
 LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", 90))
 ZSCORE_THRESHOLD = float(os.getenv("ZSCORE_THRESHOLD", 2.0))
