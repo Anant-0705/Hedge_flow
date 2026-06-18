@@ -3,12 +3,12 @@ import hashlib
 import json
 import logging
 
-import anthropic
+# pyrefly: ignore [missing-import]
+import groq
 
 from agent.correlation_engine import CorrelationSignal
 from config.settings import (
-    ANTHROPIC_API_KEY,
-    ANTHROPIC_BASE_URL,
+    GROQ_API_KEY,
     LLM_MODEL,
     MAX_POSITION_USD,
     MIN_POSITION_USD,
@@ -99,8 +99,8 @@ def decide_trade(
     macro_context: dict,
 ) -> TradeDecision:
     """Ask Claude to decide whether to execute a correlation signal trade."""
-    if not ANTHROPIC_API_KEY:
-        reason = "Missing ANTHROPIC_API_KEY. Skipping trade for safety."
+    if not GROQ_API_KEY:
+        reason = "Missing GROQ_API_KEY. Skipping trade for safety."
         logger.warning(reason)
         return TradeDecision(
             execute=False,
@@ -161,19 +161,15 @@ Respond only in valid JSON with exactly this schema:
 }}"""
 
     try:
-        client_kwargs = {"api_key": ANTHROPIC_API_KEY}
-        if ANTHROPIC_BASE_URL:
-            client_kwargs["base_url"] = ANTHROPIC_BASE_URL
+        client = groq.Groq(api_key=GROQ_API_KEY)
 
-        client = anthropic.Anthropic(**client_kwargs)
-
-        response = client.messages.create(
+        response = client.chat.completions.create(
             model=LLM_MODEL,
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}],
         )
 
-        raw = response.content[0].text.strip()
+        raw = response.choices[0].message.content.strip()
         data = json.loads(_extract_json_text(raw))
 
         reasoning_text = data.get("reasoning", "") or data.get("skip_reason", "")

@@ -229,7 +229,7 @@ class PrismClient:
             else:
                 logger.warning("Could not fetch price for %s", symbol)
 
-            time.sleep(0.2)
+            time.sleep(1.5)
 
         return prices
 
