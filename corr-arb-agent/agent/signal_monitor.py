@@ -10,7 +10,7 @@ from colorama import Fore, Style, init
 
 from agent.correlation_engine import CorrelationEngine
 from agent.llm_reasoner import decide_trade
-from agent.prism_client import PrismClient
+from agent.price_client import PriceClient
 from agent.reputation_reader import ReputationReader
 from config.settings import (
     ASSETS,
@@ -48,7 +48,7 @@ class SignalMonitor:
 
     def __init__(self):
         self.active_assets = [asset for asset in LIVE_ASSETS if asset in ASSETS] or list(ASSETS)
-        self.prism = PrismClient()
+        self.prism = PriceClient()
         self.engine = CorrelationEngine(
             lookback_days=LOOKBACK_DAYS,
             zscore_threshold=ZSCORE_THRESHOLD,
@@ -75,6 +75,7 @@ class SignalMonitor:
                 logger.info("%s loaded with %s points", asset, len(prices))
             else:
                 logger.warning("%s has insufficient history (%s points)", asset, len(prices))
+            time.sleep(1.5)
 
     @staticmethod
     def _pair_key(asset_a: str, asset_b: str) -> str:

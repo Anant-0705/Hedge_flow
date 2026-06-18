@@ -62,7 +62,7 @@ async function setup() {
   const metadata = {
     name: "CorrArbAgent-v1",
     description:
-      "Trustless correlation arbitrage agent. Trades statistical divergences using PRISM multi-asset data.",
+      "Trustless correlation arbitrage agent. Trades statistical divergences using Binance and Twelve Data.",
     version: "1.0.0",
     strategy: "correlation-arbitrage",
     assets: ["BTC", "ETH", "SOL", "MATIC", "GOLD", "EUR"],

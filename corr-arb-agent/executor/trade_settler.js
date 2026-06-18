@@ -14,15 +14,31 @@ const SETTLEMENT_HOLD_MINUTES = Number(process.env.SETTLEMENT_HOLD_MINUTES || "1
 const DEFAULT_FAILED_TRADE_PNL_USD = Number(process.env.DEFAULT_FAILED_TRADE_PNL_USD || "-5");
 const ALLOW_SETTLE_DRY_RUN = process.env.ALLOW_SETTLE_DRY_RUN === "1";
 
-const PRISM_BASE_URL = process.env.PRISM_BASE_URL || "https://api.prismapi.ai";
-const PRISM_API_KEY = process.env.PRISM_API_KEY || "";
+const BINANCE_BASE_URL = "https://api.binance.com";
+const TWELVE_DATA_API_KEY = process.env.TWELVE_DATA_API_KEY || "";
 
-const SYMBOL_ALIASES = {
-  MATIC: "POL",
-  GOLD: "GLD",
-  EUR: "FXE",
-};
-const STOCK_SYMBOLS = new Set(["GLD", "FXE"]);
+const CRYPTO_SYMBOLS = new Set(["BTC", "ETH", "SOL", "MATIC", "XRP", "ADA", "DOT", "LINK", "LTC", "BCH", "UNI", "AVAX", "DOGE", "ATOM"]);
+const BINANCE_SYMBOL_ALIASES = { MATIC: "POL" };
+const SYMBOL_ALIASES = { GOLD: "XAU/USD", EUR: "EUR/USD" };
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+let twelveDataTimestamps = [];
+
+async function waitTwelveDataRateLimit() {
+  const now = Date.now();
+  twelveDataTimestamps = twelveDataTimestamps.filter(ts => now - ts < 60000);
+  if (twelveDataTimestamps.length >= 8) {
+    const oldest = twelveDataTimestamps[0];
+    const waitTime = 60000 - (now - oldest);
+    if (waitTime > 0) {
+      console.log(`[TradeSettler] Twelve Data rate limit approaching. Sleeping for ${waitTime}ms`);
+      await sleep(waitTime);
+    }
+    const afterSleepNow = Date.now();
+    twelveDataTimestamps = twelveDataTimestamps.filter(ts => afterSleepNow - ts < 60000);
+  }
+  twelveDataTimestamps.push(Date.now());
+}
 
 function pick(obj, keys, fallback = undefined) {
   for (const key of keys) {
@@ -313,74 +329,46 @@ class TradeSettler {
   }
 
   async getCurrentPrice(symbol) {
+    const upper = String(symbol || "").toUpperCase();
+    const isCrypto = CRYPTO_SYMBOLS.has(upper);
     const normalized = this.normalizePrismSymbol(symbol);
 
-    const headers = {};
-    if (PRISM_API_KEY) {
-      headers["X-API-Key"] = PRISM_API_KEY;
-      headers["x-api-key"] = PRISM_API_KEY;
-      headers.Authorization = `Bearer ${PRISM_API_KEY}`;
-    }
-
-    const primaryEndpoints = STOCK_SYMBOLS.has(normalized)
-      ? [
-          `${PRISM_BASE_URL}/stocks/${normalized}/quote`,
-          `${PRISM_BASE_URL}/crypto/price/${normalized}`,
-        ]
-      : [
-          `${PRISM_BASE_URL}/crypto/price/${normalized}`,
-          `${PRISM_BASE_URL}/stocks/${normalized}/quote`,
-        ];
-
-    const endpoints = [
-      ...primaryEndpoints,
-      `${PRISM_BASE_URL}/resolve/${normalized}?live_price=true`,
-      `${PRISM_BASE_URL}/assets/${normalized}/prices?interval=1d&limit=1&asset_type=crypto`,
-    ];
-
-    for (const url of endpoints) {
-      const price = await this.fetchPriceFromEndpoint(url, headers);
-      if (price !== null) {
-        return price;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (isCrypto) {
+          const binanceBase = BINANCE_SYMBOL_ALIASES[upper] || upper;
+          const url = `${BINANCE_BASE_URL}/api/v3/ticker/price?symbol=${binanceBase}USDT`;
+          const response = await axios.get(url, { timeout: 10000 });
+          const price = Number(response.data?.price);
+          if (Number.isFinite(price) && price > 0) return price;
+        } else {
+          await waitTwelveDataRateLimit();
+          const url = `https://api.twelvedata.com/price?symbol=${normalized}&apikey=${TWELVE_DATA_API_KEY}`;
+          const response = await axios.get(url, { timeout: 10000 });
+          
+          if (response.data?.status === "error") {
+            if (response.data?.code === 429) {
+              const waitTime = Math.pow(2, attempt) * 1000;
+              await sleep(waitTime);
+              continue;
+            }
+            throw new Error(`Twelve Data error: ${JSON.stringify(response.data)}`);
+          }
+          
+          const price = Number(response.data?.price);
+          if (Number.isFinite(price) && price > 0) return price;
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 429) {
+          const waitTime = Math.pow(2, attempt) * 1000;
+          await sleep(waitTime);
+          continue;
+        }
+        if (attempt === 2) break;
+        await sleep(1000 * (attempt + 1));
       }
     }
-
     throw new Error(`price unavailable for symbol ${symbol}`);
-  }
-
-  async fetchPriceFromEndpoint(url, headers) {
-    try {
-      const response = await axios.get(url, { headers, timeout: 10000 });
-      return this.extractPrice(response.data || {});
-    } catch {
-      return null;
-    }
-  }
-
-  extractPrice(data) {
-    const direct = Number(
-      data.price_usd ?? data.price ?? data.value ?? data.data?.price_usd ?? data.data?.price
-    );
-    if (Number.isFinite(direct) && direct > 0) {
-      return direct;
-    }
-
-    let prices = [];
-    if (Array.isArray(data.prices)) {
-      prices = data.prices;
-    } else if (Array.isArray(data.candles)) {
-      prices = data.candles;
-    }
-
-    if (prices.length > 0) {
-      const latest = prices[prices.length - 1];
-      const close = Number(latest.close ?? latest.price ?? latest.value);
-      if (Number.isFinite(close) && close > 0) {
-        return close;
-      }
-    }
-
-    return null;
   }
 }
 

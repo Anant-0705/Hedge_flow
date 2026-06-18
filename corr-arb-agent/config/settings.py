@@ -8,17 +8,12 @@ def _env_flag(name: str, default: str = "0") -> bool:
 	return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
 
 # API keys
-PRISM_API_KEY = os.getenv("PRISM_API_KEY")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-ANTHROPIC_BASE_URL = os.getenv("ANTHROPIC_BASE_URL")
-LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4-20250514")
+TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
-# Jatevo keys use the Anthropic-compatible API surface at https://jatevo.ai.
-if not ANTHROPIC_BASE_URL and (ANTHROPIC_API_KEY or "").startswith("jk_"):
-	ANTHROPIC_BASE_URL = "https://jatevo.ai"
-
-# PRISM base URL
-PRISM_BASE_URL = "https://api.prismapi.ai"
+# Binance base URL
+BINANCE_BASE_URL = "https://api.binance.com"
 
 # Assets to watch
 ASSETS = [asset.strip() for asset in os.getenv("ASSETS", "BTC,ETH,SOL,MATIC,GOLD,EUR").split(",") if asset.strip()]
