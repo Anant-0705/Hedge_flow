@@ -17,7 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from agent.correlation_engine import CorrelationEngine
-from agent.prism_client import PrismClient
+from agent.price_client import PriceClient
 from agent.reputation_reader import ReputationReader
 from config.settings import ASSETS, LIVE_ASSETS, LOOKBACK_DAYS, ZSCORE_THRESHOLD
 
@@ -29,19 +29,22 @@ BASESCAN_TX_URL = "https://sepolia.etherscan.io/tx/"
 class DashboardState:
     def __init__(self):
         self.assets = [asset for asset in LIVE_ASSETS if asset in ASSETS] or list(ASSETS)
-        self.prism = PrismClient()
+        self.prism = PriceClient()
         self.engine = CorrelationEngine(lookback_days=LOOKBACK_DAYS, zscore_threshold=ZSCORE_THRESHOLD)
         self.reputation = ReputationReader()
         self.seeded = False
+        self.last_update_time = 0.0
 
     def seed_history(self):
         if self.seeded:
             return
 
+        import time
         for asset in self.assets:
             prices = self.prism.get_price_history(asset, days=LOOKBACK_DAYS)
             if prices:
                 self.engine.load_history(asset, prices)
+            time.sleep(1.5)
 
         self.seeded = True
 
@@ -195,11 +198,14 @@ def get_agent() -> dict[str, Any]:
 
 @app.get("/api/correlations")
 def get_correlations() -> Any:
-    prices = state.prism.get_all_prices(state.assets)
+    prices = state.prism.get_all_prices(state.assets, save_history=False)
     if not prices:
         return JSONResponse(status_code=503, content={"error": "Could not fetch prices"})
 
-    state.engine.update_prices(prices)
+    import time
+    if time.time() - state.last_update_time >= 300:
+        state.engine.update_prices(prices)
+        state.last_update_time = time.time()
 
     rows: list[dict[str, Any]] = []
     signals: list[dict[str, Any]] = []
