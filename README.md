@@ -53,37 +53,37 @@ cd executor
 npm install
 ```
 
-## Start All Agents (One Command)
+## Running the System (Windows)
 
-```bash
-cd /Users/satviiikkk/HedgeFlow/corr-arb-agent
-./scripts/start_agents.sh
+You need to open 5 separate terminal windows. Here are the exact commands to run in each window:
+
+### 1. Dashboard Backend (API Server)
+```powershell
+cd c:\Users\LENOVO\Desktop\Hedge_flow\corr-arb-agent
+.\venv\Scripts\uvicorn dashboard.backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-The launcher is idempotent and skips services that are already running.
-Logs are written to:
-
-- `logs/agents/monitor.log`
-- `logs/agents/watcher.log`
-- `logs/agents/settler.log`
-
-## Manual Start (3 Separate Terminals)
-
-### Terminal 1: Monitor
-```bash
-PYTHONPATH=/Users/satviiikkk/HedgeFlow/corr-arb-agent \
-/Users/satviiikkk/HedgeFlow/corr-arb-agent/venv/bin/python -m agent.signal_monitor
+### 2. Dashboard Frontend (UI)
+```powershell
+cd c:\Users\LENOVO\Desktop\Hedge_flow\corr-arb-agent\dashboard\frontend
+npm run dev
 ```
 
-### Terminal 2: Watcher
-```bash
-cd /Users/satviiikkk/HedgeFlow/corr-arb-agent/executor
+### 3. Core Python Agent (The Brain)
+```powershell
+cd c:\Users\LENOVO\Desktop\Hedge_flow\corr-arb-agent
+.\venv\Scripts\python -m agent.signal_monitor
+```
+
+### 4. Trade Watcher (Blockchain Executor)
+```powershell
+cd c:\Users\LENOVO\Desktop\Hedge_flow\corr-arb-agent\executor
 node trade_watcher.js
 ```
 
-### Terminal 3: Settler
-```bash
-cd /Users/satviiikkk/HedgeFlow/corr-arb-agent/executor
+### 5. Trade Settler (PnL Tracker)
+```powershell
+cd c:\Users\LENOVO\Desktop\Hedge_flow\corr-arb-agent\executor
 node trade_settler.js
 ```
 
