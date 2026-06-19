@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "python",
+  "packages": {
+    "python": "3.13",
+    "node": "20"
+  },
+  "deploy": {
+    "startCommand": "bash start_all.sh"
+  }
+}

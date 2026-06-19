@@ -1,5 +1,0 @@
-providers = ["...", "node"]
-
-[variables]
-NIXPACKS_PYTHON_VERSION = "3.13"
-NIXPACKS_NODE_VERSION = "20"
