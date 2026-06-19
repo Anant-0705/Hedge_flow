@@ -13,7 +13,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
 # Binance base URL
-BINANCE_BASE_URL = "https://api.binance.com"
+BINANCE_BASE_URL = "https://data-api.binance.vision"
 
 # Assets to watch
 ASSETS = [asset.strip() for asset in os.getenv("ASSETS", "BTC,ETH,SOL,MATIC,GOLD,EUR").split(",") if asset.strip()]
