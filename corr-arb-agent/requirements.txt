@@ -12,3 +12,5 @@ statsmodels==0.14.2
 schedule==1.2.1
 colorama==0.4.6
 web3==7.10.0
+fastapi
+uvicorn
