@@ -14,3 +14,4 @@ colorama==0.4.6
 web3==7.10.0
 fastapi
 uvicorn
+groq==0.11.0
