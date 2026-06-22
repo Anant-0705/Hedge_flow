@@ -1,0 +1,10 @@
+{
+  "actorSpecification": 1,
+  "name": "hedgeflow-macro-scraper",
+  "title": "HedgeFlow Macro Context Scraper",
+  "description": "Scrapes crypto news and sentiment for HedgeFlow trading agent",
+  "version": "0.1",
+  "meta": { "templateId": "js-crawlee-cheerio" },
+  "input": "./INPUT_SCHEMA.json",
+  "dockerfile": "./Dockerfile"
+}

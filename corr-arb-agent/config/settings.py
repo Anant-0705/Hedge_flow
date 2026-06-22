@@ -12,6 +12,10 @@ TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 
+# Apify web scraper integration
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN", "")
+APIFY_DATASET_ID = os.getenv("APIFY_DATASET_ID", "")
+
 # Binance base URL
 BINANCE_BASE_URL = "https://data-api.binance.vision"
 

@@ -91,6 +91,12 @@ def _extract_json_text(raw: str) -> str:
     return "\n".join(lines).strip()
 
 
+def _format_headlines(headlines: list[str]) -> str:
+    if not headlines:
+        return "none available"
+    return " | ".join(f'"{h[:80]}"' for h in headlines[:5])
+
+
 def decide_trade(
     signal: CorrelationSignal,
     agent_reputation_score: int,
@@ -142,10 +148,13 @@ Agent state:
 - Recent trade PnL (last 5): {recent_pnl_str}
 - Suggested position size: ${base_size:.0f}
 
-Macro context:
+Macro context (scraped {macro_context.get('scraped_at', 'unknown')}):
 - Fear and Greed Index: {macro_context.get('fear_greed', 'unknown')}
 - BTC funding rate: {macro_context.get('btc_funding_rate', 'unknown')}
+- ETH funding rate: {macro_context.get('eth_funding_rate', 'unknown')}
 - Market regime: {macro_context.get('market_regime', 'unknown')}
+- News sentiment: {macro_context.get('news_sentiment', 'unknown')}
+- Top headlines: {_format_headlines(macro_context.get('top_headlines', []))}
 
 Task:
 1) Decide EXECUTE or SKIP.
@@ -159,6 +168,13 @@ Task:
    If spread_zscore direction conflicts with the direction field, flag it in reasoning and set execute=false.
 7) If macro context fields are unknown, treat them as neutral and do not SKIP for that reason alone.
 8) Do not apply any hidden confidence cutoff. Set execute=true when the signal is tradable; runtime gates will enforce final confidence thresholds.
+9) If news_sentiment is strongly bearish (e.g. "bearish") and 
+   market_regime is "risk_off", increase your skepticism on 
+   EXECUTE decisions — prefer smaller size_usd or SKIP if 
+   z_score is marginal (between threshold and threshold+0.5).
+   If news_sentiment is "bullish" and fear_greed > 60, 
+   this confirms risk-on conditions — lean toward EXECUTE 
+   for strong spread signals.
 
 Respond only in valid JSON with exactly this schema:
 {{

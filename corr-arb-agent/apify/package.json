@@ -1,0 +1,12 @@
+{
+  "name": "hedgeflow-macro-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "apify": "^3.0.0",
+    "crawlee": "^3.0.0"
+  },
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}

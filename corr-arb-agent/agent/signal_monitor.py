@@ -8,6 +8,7 @@ from pathlib import Path
 import schedule
 from colorama import Fore, Style, init
 
+from agent.apify_client import ApifyMacroClient
 from agent.correlation_engine import CorrelationEngine
 from agent.llm_reasoner import decide_trade
 from agent.price_client import PriceClient
@@ -49,6 +50,7 @@ class SignalMonitor:
     def __init__(self):
         self.active_assets = [asset for asset in LIVE_ASSETS if asset in ASSETS] or list(ASSETS)
         self.prism = PriceClient()
+        self.apify = ApifyMacroClient()
         self.engine = CorrelationEngine(
             lookback_days=LOOKBACK_DAYS,
             zscore_threshold=ZSCORE_THRESHOLD,
@@ -214,11 +216,14 @@ class SignalMonitor:
         )
 
         print(f"\n{Fore.YELLOW}[4/4] Asking LLM for trade decision...{Style.RESET_ALL}")
-        macro_context = {
-            "fear_greed": "unknown",
-            "btc_funding_rate": "unknown",
-            "market_regime": "unknown",
-        }
+        macro_context = self.apify.fetch()
+        logger.info(
+            "Macro context: F&G=%s regime=%s sentiment=%s headlines=%d",
+            macro_context.get("fear_greed"),
+            macro_context.get("market_regime"),
+            macro_context.get("news_sentiment"),
+            len(macro_context.get("top_headlines", [])),
+        )
 
         decision = decide_trade(
             signal=best,
