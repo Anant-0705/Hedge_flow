@@ -55,6 +55,7 @@ export default function LandingPage() {
           <div className="nav-links">
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/trade/latest">Trades</Link>
+            <Link to="/demo">Demo</Link>
             <a
               href={`${ETHERSCAN_BASE}${CONTRACTS.agent}`}
               target="_blank"
