@@ -160,6 +160,9 @@ async function submitLeg({ leg, signal, decision, currentNonce, signer, submitte
 
   if (!submit.success && shouldRetrySubmission(submit.error)) {
     console.log(`[TradeWatcher] Leg ${leg} retrying after failure: ${submit.error}`);
+    
+    // Give public RPC nodes time to sync the previous leg's state before retrying
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const refreshedNonce = await refreshNonce(submitter, syncedNonce);
     const retryDecision = {
@@ -229,7 +232,12 @@ async function processTrade(trade, context, currentNonce) {
   const results = [];
   let nonce = currentNonce;
 
-  for (const leg of legs) {
+  for (let i = 0; i < legs.length; i++) {
+    const leg = legs[i];
+    if (i > 0) {
+      console.log(`[TradeWatcher] Waiting 5s before Leg ${leg} to allow RPC nodes to sync...`);
+      await new Promise(r => setTimeout(r, 5000));
+    }
     try {
       const legResult = await submitLeg({
         leg,
