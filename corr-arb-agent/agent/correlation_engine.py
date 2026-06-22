@@ -260,7 +260,7 @@ class CorrelationEngine:
             self._coint_cache[cache_key] = (time.time(), result)
 
             logger.info(
-                "Cointegration %s/%s: p=%.4f (%s) β=%.4f spread_z=%.2f",
+                "Cointegration %s/%s: p=%.4f (%s) beta=%.4f spread_z=%.2f",
                 asset_a, asset_b, p_value,
                 "PASS" if is_cointegrated else "FAIL",
                 beta, spread_zscore,
@@ -338,7 +338,7 @@ class CorrelationEngine:
             signals.append(signal)
 
             logger.info(
-                "SIGNAL %s/%s z=%.2f corr=%.3f spread_z=%.2f β=%.4f p=%.4f conf=%.2f",
+                "SIGNAL %s/%s z=%.2f corr=%.3f spread_z=%.2f beta=%.4f p=%.4f conf=%.2f",
                 asset_a, asset_b, z, result["current_correlation"],
                 coint["spread_zscore"], coint["hedge_ratio"],
                 coint["p_value"], confidence,
