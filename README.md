@@ -4,7 +4,6 @@
 
 **Live Dashboard:** https://hedgeflow-production.up.railway.app  
 **Blockchain:** Sepolia Testnet (Chain ID: 11155111)  
-**Team:** BurgerOS — Aaditya Singhal, Anant Singhal, Satvik Srivastava  
 **Institution:** KIET Group of Institutions, Ghaziabad
 
 ---
